@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Sync Scenarios to README",
+  "description": "When a file in /scenarios/ is edited, automatically update the README with the current list of scenarios and their status.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "scenarios/**"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A file in the /scenarios/ directory was just edited. Please read all scenario files in /scenarios/ and update the README.md to reflect the current list of scenarios, including each scenario's name, description, and status (if available). Keep the rest of the README intact."
+  }
+}

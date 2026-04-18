@@ -1,0 +1,72 @@
+/* GlowOrb - HAL-style diffuse glow indicator */
+
+.glow-orb-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.glow-orb-container {
+  position: relative;
+  width: 160px;
+  height: 160px;
+}
+
+.glow-orb-layer {
+  position: absolute;
+  border-radius: 50%;
+  transition: background 1.2s ease;
+}
+
+.glow-orb-ambient { inset: -50px; }
+.glow-orb-outer   { inset: -16px; }
+.glow-orb-mid     { inset: 16px; }
+.glow-orb-core    { inset: 44px; }
+.glow-orb-hot     { inset: 60px; }
+
+/* Idle breathing animation */
+@keyframes glow-breathe {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(1.06); opacity: 0.75; }
+}
+
+.glow-orb-breathing .glow-orb-ambient,
+.glow-orb-breathing .glow-orb-outer,
+.glow-orb-breathing .glow-orb-mid {
+  animation: glow-breathe var(--breathe-duration, 5s) ease-in-out infinite;
+}
+
+/* Speaking animation - irregular, reactive */
+@keyframes glow-speak {
+  0%, 100% { transform: scale(1); }
+  12%      { transform: scale(1.1); }
+  28%      { transform: scale(0.95); }
+  45%      { transform: scale(1.07); }
+  62%      { transform: scale(0.97); }
+  80%      { transform: scale(1.04); }
+}
+
+.glow-orb-speaking .glow-orb-ambient,
+.glow-orb-speaking .glow-orb-outer,
+.glow-orb-speaking .glow-orb-mid {
+  animation: glow-speak 2s ease-in-out infinite;
+}
+
+.glow-orb-speaking .glow-orb-core {
+  animation: glow-speak 2s ease-in-out infinite 0.1s;
+}
+
+/* Exchange pips */
+.glow-orb-pips {
+  display: flex;
+  gap: 3px;
+  justify-content: center;
+}
+
+.glow-orb-pip {
+  width: 14px;
+  height: 3px;
+  border-radius: 2px;
+  transition: background 0.4s ease, opacity 0.4s ease;
+}

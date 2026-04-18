@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Validate Scenario on File Create",
+  "description": "When a file is created in the scenarios/ directory, checks that the scenario folder contains both config.json and system_prompt.txt, and that config.json has all required fields: scenario_id, title, tagline, description, exchange_limit, system_prompt_file, voice_config, and opening_line.",
+  "version": "1",
+  "when": {
+    "type": "fileCreated",
+    "patterns": [
+      "scenarios/**/*"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A file was just created in the scenarios/ directory. Validate the scenario directory that was affected:\n\n1. Check that the scenario directory contains BOTH `config.json` AND `system_prompt.txt`\n2. If `config.json` exists, parse it and verify it contains ALL of these required fields:\n   - scenario_id\n   - title\n   - tagline\n   - description\n   - exchange_limit\n   - system_prompt_file\n   - voice_config\n   - opening_line\n\nIf any files are missing or any required fields are absent from config.json, clearly report what is missing. If everything is valid, confirm the scenario directory is correctly structured."
+  }
+}

@@ -54,7 +54,7 @@ export default function AudioPlayer({
             },
             body: JSON.stringify({
               text: responseText,
-              model_id: "eleven_monolingual_v1",
+              model_id: "eleven_turbo_v2_5",  // 0.5 credits/char instead of 1 — halves cost
               voice_settings: {
                 stability: voiceConfig.stability,
                 similarity_boost: voiceConfig.similarity_boost,

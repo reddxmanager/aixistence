@@ -254,11 +254,11 @@
   animation: orbAppear 0.8s ease-out forwards;
 }
 
-.aix-node:nth-child(1) { animation-delay: 0.6s; }
-.aix-node:nth-child(2) { animation-delay: 0.9s; }
-.aix-node:nth-child(3) { animation-delay: 1.2s; }
-.aix-node:nth-child(4) { animation-delay: 1.5s; }
-.aix-node:nth-child(5) { animation-delay: 1.8s; }
+.aix-node:nth-child(2) { animation-delay: 0.6s; }
+.aix-node:nth-child(3) { animation-delay: 0.9s; }
+.aix-node:nth-child(4) { animation-delay: 1.2s; }
+.aix-node:nth-child(5) { animation-delay: 1.5s; }
+.aix-node:nth-child(6) { animation-delay: 1.8s; }
 
 .aix-mobile-row {
   opacity: 0;

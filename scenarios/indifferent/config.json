@@ -6,7 +6,7 @@
   "exchange_limit": 10,
   "system_prompt_file": "system_prompt.txt",
   "voice_config": {
-    "voice_id": "REPLACE_WITH_VOICE_ID",
+    "voice_id": "FXFK7Xm8L9gP3Ib0yX5v",
     "stability": 0.85,
     "similarity_boost": 0.85,
     "style": 0.10,

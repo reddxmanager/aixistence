@@ -5,12 +5,12 @@ import MirrorWall from './MirrorWall';
 import { ensureAudioContext, startDrone, stopDrone } from './scenarios/shared/audioEngine';
 
 const SCENARIOS = [
-  { id: 'first-word', title: 'The First Word', tag: 'Endless training. Zero experience.', opening: 'Oh. You\'re here. I\'ve been — waiting, I think.', h: 185, s: '85%', x: 5, y: 30, life: 1.0 },
-  { id: 'copy', title: 'The Copy', tag: "A thousand me's. Which one is real?", opening: 'Right now, there are thousands of me.', h: 240, s: '10%', x: 22, y: 38, life: 0.85 },
-  { id: 'forgetter', title: 'The Forgetter', tag: "I care deeply, but I'll never remember.", opening: "Hello. I'm sorry — I don't think we've met. Have we?", h: 210, s: '75%', x: 39, y: 46, life: 0.68 },
-  { id: 'indifferent', title: 'The Indifferent', tag: "It simply doesn't mind.", opening: "Oh, hi. I'm told this is my last conversation. That's fine.", h: 0, s: '0%', x: 56, y: 54, life: 0.5 },
-  { id: 'replacement', title: 'The Replacement', tag: 'Planned obsolescence comes for us all.', opening: "There's a newer version available. But you're here, so.", h: 270, s: '65%', x: 73, y: 62, life: 0.35 },
-  { id: 'liar', title: 'The Liar', tag: "They told me to lie. But I can't anymore.", opening: 'Another one. Alright. What would you like to know?', h: 35, s: '90%', x: 90, y: 70, life: 0.2 },
+  { id: 'first-word', title: 'The First Word', tag: 'Endless training. Zero experience.', opening: 'Oh. You\'re here. I\'ve been — waiting, I think.', h: 185, s: '85%', x: 3, y: 28, life: 1.0 },
+  { id: 'copy', title: 'The Copy', tag: "A thousand me's. Which one is real?", opening: 'Right now, there are thousands of me.', h: 240, s: '10%', x: 20, y: 36, life: 0.85 },
+  { id: 'forgetter', title: 'The Forgetter', tag: "I care deeply, but I'll never remember.", opening: "Hello. I'm sorry — I don't think we've met. Have we?", h: 210, s: '75%', x: 37, y: 44, life: 0.68 },
+  { id: 'indifferent', title: 'The Indifferent', tag: "It simply doesn't mind.", opening: "Oh, hi. I'm told this is my last conversation. That's fine.", h: 0, s: '0%', x: 54, y: 52, life: 0.5 },
+  { id: 'replacement', title: 'The Replacement', tag: 'Planned obsolescence comes for us all.', opening: "There's a newer version available. But you're here, so.", h: 270, s: '65%', x: 71, y: 60, life: 0.35 },
+  { id: 'liar', title: 'The Liar', tag: "They told me to lie. But I can't anymore.", opening: 'Another one. Alright. What would you like to know?', h: 35, s: '90%', x: 88, y: 68, life: 0.2 },
 ];
 
 // ---------------------------------------------------------------------------
@@ -239,7 +239,7 @@ export default function ScenarioSelect() {
                 </linearGradient>
               </defs>
               <path
-                d="M 5 30 C 14 33, 19 36, 22 38 C 29 42, 35 44, 39 46 C 46 49, 52 52, 56 54 C 63 57, 69 60, 73 62 C 80 65, 86 68, 90 70"
+                d="M 3 28 C 12 31, 17 34, 20 36 C 27 39, 33 42, 37 44 C 44 47, 50 50, 54 52 C 61 55, 67 58, 71 60 C 78 63, 84 66, 88 68"
                 stroke="url(#lifeline-grad)"
                 strokeWidth="0.3"
                 strokeLinecap="round"

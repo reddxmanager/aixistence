@@ -259,6 +259,7 @@
 .aix-node:nth-child(4) { animation-delay: 1.2s; }
 .aix-node:nth-child(5) { animation-delay: 1.5s; }
 .aix-node:nth-child(6) { animation-delay: 1.8s; }
+.aix-node:nth-child(7) { animation-delay: 2.1s; }
 
 .aix-mobile-row {
   opacity: 0;
@@ -270,6 +271,7 @@
 .aix-mobile-row:nth-child(3) { animation-delay: 0.8s; }
 .aix-mobile-row:nth-child(4) { animation-delay: 1.0s; }
 .aix-mobile-row:nth-child(5) { animation-delay: 1.2s; }
+.aix-mobile-row:nth-child(6) { animation-delay: 1.4s; }
 
 /* Responsive adjustments */
 @media (max-width: 600px) {

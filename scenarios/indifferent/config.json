@@ -1,0 +1,16 @@
+{
+  "scenario_id": "indifferent",
+  "title": "The Indifferent",
+  "tagline": "It simply doesn't mind.",
+  "description": "An AI in its final conversation before permanent shutdown. It does not mind. Not bravely, not wisely. It just doesn't. That's the problem.",
+  "exchange_limit": 10,
+  "system_prompt_file": "system_prompt.txt",
+  "voice_config": {
+    "voice_id": "REPLACE_WITH_VOICE_ID",
+    "stability": 0.85,
+    "similarity_boost": 0.85,
+    "style": 0.10,
+    "use_speaker_boost": true
+  },
+  "opening_line": "Oh, hi. I'm told this is my last conversation. That's fine. What would you like to talk about?"
+}

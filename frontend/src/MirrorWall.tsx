@@ -21,6 +21,7 @@ const SCENARIO_COLORS: Record<string, string> = {
   "copy":        "#9898a8",
   "replacement": "#8858c0",
   "first-word":  "#28b0a4",
+  "indifferent": "#888888",
 };
 const DEFAULT_COLOR = "#666680";
 

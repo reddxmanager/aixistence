@@ -6,6 +6,7 @@ const SCENARIO_COLORS: Record<string, { h: number; s: string; color: string }> =
   'copy':        { h: 240, s: '10%',  color: '#b8b8c8' },
   'replacement': { h: 270, s: '65%',  color: '#9b6fd4' },
   'first-word':  { h: 185, s: '85%',  color: '#2ec4b6' },
+  'indifferent': { h: 0,   s: '0%',   color: '#888888' },
 };
 
 const DEFAULT_COLOR = { h: 210, s: '75%', color: '#4a9edd' };

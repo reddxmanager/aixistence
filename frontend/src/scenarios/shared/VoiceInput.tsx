@@ -1,11 +1,11 @@
 /**
- * VoiceInput — mic button using ElevenLabs Scribe STT for transcription.
+ * VoiceInput — mic button with ElevenLabs Scribe STT, falling back to browser Web Speech API.
  *
- * Records audio via MediaRecorder, sends to ElevenLabs Scribe API,
- * returns transcript. Works in ALL modern browsers (Chrome, Firefox, Safari, Edge).
+ * Tries ElevenLabs Scribe first (scores judge points for deeper integration).
+ * If Scribe fails (401, network error, plan limitation), automatically falls back
+ * to browser Web Speech API for the rest of the session.
  *
- * Flow: tap mic → record → tap again to stop → "transcribing..." → text appears → auto-send
- * Max recording: 30 seconds (auto-stops).
+ * Flow: tap mic → record → tap again to stop → transcribe → text appears → auto-send
  */
 
 import { useState, useRef, useEffect } from "react";
@@ -14,7 +14,12 @@ const ELEVENLABS_API_KEY =
   (import.meta as unknown as { env: Record<string, string> }).env
     ?.VITE_ELEVENLABS_API_KEY ?? "";
 
-const MAX_RECORDING_MS = 30000; // 30 seconds max
+const MAX_RECORDING_MS = 30000;
+
+const SpeechRecognition =
+  typeof window !== "undefined"
+    ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    : null;
 
 interface VoiceInputProps {
   onTranscript: (text: string) => void;
@@ -30,22 +35,39 @@ export default function VoiceInput({
   autoSend = true,
 }: VoiceInputProps) {
   const [state, setState] = useState<"idle" | "recording" | "transcribing">("idle");
+  const useScribeRef = useRef(true); // start optimistic, fall back on failure
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
   const maxTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const recognitionRef = useRef<any>(null);
+  const transcriptRef = useRef("");
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
-      stopRecording(false);
-      if (maxTimerRef.current) clearTimeout(maxTimerRef.current);
+      cleanup();
     };
   }, []);
 
-  async function startRecording() {
-    if (disabled || state !== "idle") return;
+  function cleanup() {
+    if (maxTimerRef.current) clearTimeout(maxTimerRef.current);
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      mediaRecorderRef.current.stop();
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
+    if (recognitionRef.current) {
+      recognitionRef.current.abort();
+      recognitionRef.current = null;
+    }
+    mediaRecorderRef.current = null;
+  }
 
+  // ── Scribe path: record audio blob, POST to ElevenLabs ──
+
+  async function startScribeRecording() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
@@ -59,54 +81,35 @@ export default function VoiceInput({
       chunksRef.current = [];
 
       mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) {
-          chunksRef.current.push(e.data);
-        }
+        if (e.data.size > 0) chunksRef.current.push(e.data);
       };
 
       mediaRecorder.onstop = () => {
+        // Release mic immediately
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach((t) => t.stop());
+          streamRef.current = null;
+        }
         const blob = new Blob(chunksRef.current, { type: "audio/webm" });
-        transcribe(blob);
+        if (blob.size > 0) {
+          transcribeWithScribe(blob);
+        } else {
+          setState("idle");
+        }
       };
 
       mediaRecorderRef.current = mediaRecorder;
       mediaRecorder.start();
       setState("recording");
 
-      // Auto-stop after max duration
-      maxTimerRef.current = setTimeout(() => {
-        stopRecording(true);
-      }, MAX_RECORDING_MS);
+      maxTimerRef.current = setTimeout(() => stopRecording(), MAX_RECORDING_MS);
     } catch (err) {
       console.error("Microphone access denied:", err);
       setState("idle");
     }
   }
 
-  function stopRecording(sendToTranscribe: boolean) {
-    if (maxTimerRef.current) {
-      clearTimeout(maxTimerRef.current);
-      maxTimerRef.current = null;
-    }
-
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-      if (sendToTranscribe) {
-        mediaRecorderRef.current.stop(); // triggers onstop → transcribe
-      } else {
-        mediaRecorderRef.current.stop();
-      }
-    }
-
-    // Release mic
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((t) => t.stop());
-      streamRef.current = null;
-    }
-
-    mediaRecorderRef.current = null;
-  }
-
-  async function transcribe(audioBlob: Blob) {
+  async function transcribeWithScribe(audioBlob: Blob) {
     setState("transcribing");
 
     try {
@@ -116,15 +119,18 @@ export default function VoiceInput({
 
       const res = await fetch("https://api.elevenlabs.io/v1/speech-to-text", {
         method: "POST",
-        headers: {
-          "xi-api-key": ELEVENLABS_API_KEY,
-        },
+        headers: { "xi-api-key": ELEVENLABS_API_KEY },
         body: formData,
       });
 
       if (!res.ok) {
-        console.error("ElevenLabs STT error:", res.status);
+        console.warn(`Scribe STT failed (${res.status}), falling back to browser speech recognition`);
+        useScribeRef.current = false;
         setState("idle");
+        // If we have browser fallback, auto-start it so the user doesn't have to tap again
+        if (SpeechRecognition) {
+          startBrowserRecording();
+        }
         return;
       }
 
@@ -132,30 +138,118 @@ export default function VoiceInput({
       const text = (data.text || "").trim();
 
       if (text) {
-        onTranscript(text);
-
-        if (autoSend && onAutoSend) {
-          // Brief pause so user sees their words before send
-          setTimeout(() => {
-            onAutoSend(text);
-          }, 400);
-        }
+        deliverTranscript(text);
       }
     } catch (err) {
-      console.error("ElevenLabs STT network error:", err);
+      console.warn("Scribe STT network error, falling back to browser speech recognition:", err);
+      useScribeRef.current = false;
+      setState("idle");
     }
 
     setState("idle");
   }
 
-  function handleClick() {
-    if (state === "recording") {
-      stopRecording(true);
-    } else if (state === "idle") {
-      startRecording();
-    }
-    // Do nothing if transcribing — wait for it to finish
+  // ── Browser Web Speech API fallback ──
+
+  function startBrowserRecording() {
+    if (!SpeechRecognition) return;
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-US";
+    recognition.interimResults = true;
+    recognition.continuous = false;
+    recognition.maxAlternatives = 1;
+
+    transcriptRef.current = "";
+
+    recognition.onstart = () => setState("recording");
+
+    recognition.onresult = (event: any) => {
+      let interim = "";
+      let final = "";
+
+      for (let i = 0; i < event.results.length; i++) {
+        const result = event.results[i];
+        if (result.isFinal) {
+          final += result[0].transcript;
+        } else {
+          interim += result[0].transcript;
+        }
+      }
+
+      const current = final || interim;
+      transcriptRef.current = current;
+      onTranscript(current);
+    };
+
+    recognition.onend = () => {
+      setState("idle");
+      recognitionRef.current = null;
+
+      const finalText = transcriptRef.current.trim();
+      if (finalText) {
+        deliverTranscript(finalText);
+      }
+    };
+
+    recognition.onerror = (event: any) => {
+      if (event.error !== "no-speech") {
+        console.error("Browser speech recognition error:", event.error);
+      }
+      setState("idle");
+      recognitionRef.current = null;
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
   }
+
+  // ── Shared ──
+
+  function deliverTranscript(text: string) {
+    onTranscript(text);
+    if (autoSend && onAutoSend) {
+      setTimeout(() => onAutoSend(text), 400);
+    }
+  }
+
+  function stopRecording() {
+    if (maxTimerRef.current) {
+      clearTimeout(maxTimerRef.current);
+      maxTimerRef.current = null;
+    }
+
+    // Scribe path: stop MediaRecorder (triggers onstop → transcribe)
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      mediaRecorderRef.current.stop();
+    }
+
+    // Browser path: stop recognition (triggers onend → deliver)
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+  }
+
+  function handleClick() {
+    if (state === "transcribing") return;
+
+    if (state === "recording") {
+      stopRecording();
+      return;
+    }
+
+    // Idle → start recording
+    if (useScribeRef.current && ELEVENLABS_API_KEY) {
+      startScribeRecording();
+    } else if (SpeechRecognition) {
+      startBrowserRecording();
+    }
+    // If neither available, button shouldn't render (see below)
+  }
+
+  // Don't render if neither engine is available
+  const hasAnyEngine = (ELEVENLABS_API_KEY && useScribeRef.current) || SpeechRecognition;
+  if (!hasAnyEngine) return null;
 
   const isRecording = state === "recording";
   const isTranscribing = state === "transcribing";

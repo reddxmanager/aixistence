@@ -292,7 +292,7 @@ export default function VoiceInput({
           : "none",
       }}
     >
-      {isTranscribing ? "···" : isRecording ? "●" : "🎤"}
+      {isTranscribing ? "···" : isRecording ? "●" : "mic"}
 
       <style>{`
         @keyframes micPulse {

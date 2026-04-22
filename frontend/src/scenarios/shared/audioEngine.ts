@@ -46,9 +46,9 @@ export function startDrone() {
     max: 280,
   });
   droneLfo.connect(droneFilter.frequency);
-  droneLfo.start();
+  try { droneLfo.start(); } catch { /* timing error — non-fatal */ }
 
-  droneSynth.triggerAttack("C1");
+  try { droneSynth.triggerAttack("C1"); } catch { /* timing error — non-fatal */ }
 
   // Fade in over 3 seconds
   droneGain.gain.rampTo(0.12, 3);
@@ -109,7 +109,11 @@ function scheduleHeartbeat(exchange: number, limit: number) {
     }
   }
 
-  heartbeatSynth.triggerAttackRelease("C1", "16n");
+  try {
+    heartbeatSynth.triggerAttackRelease("C1", "16n");
+  } catch {
+    // Tone.js timing error — skip this beat, try next one
+  }
 
   heartbeatLoop = setTimeout(() => {
     scheduleHeartbeat(exchange, limit);
@@ -191,7 +195,11 @@ export function playMirrorTone() {
   }).connect(reverb);
 
   // A high, clear note — like a glass rim
-  synth.triggerAttackRelease("E5", "2n");
+  try {
+    synth.triggerAttackRelease("E5", "2n");
+  } catch {
+    // Tone.js timing error — non-fatal
+  }
 
   // Clean up after it fades
   setTimeout(() => {

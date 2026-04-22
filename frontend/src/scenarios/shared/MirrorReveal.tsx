@@ -36,6 +36,7 @@ export default function MirrorReveal({ history, scenarioId }: MirrorRevealProps)
   const [mirrorId, setMirrorId] = useState<string | null>(null);
   const [phase, setPhase] = useState<Phase>("breathing");
   const [addedToWall, setAddedToWall] = useState(false);
+  const [shared, setShared] = useState(false);
   const mountTime = useRef(Date.now());
 
   // ── Fetch mirror analysis — fires IMMEDIATELY, reveals after minimum wait ──
@@ -108,6 +109,30 @@ export default function MirrorReveal({ history, scenarioId }: MirrorRevealProps)
       /* silent */
     }
     depart();
+  }
+
+  // ── Share ──
+  async function handleShare() {
+    if (!observation) return;
+
+    const shareText = `"${observation}"\n\nAn AI said this about me after our last conversation.\nhttps://aixistence.netlify.app`;
+
+    // Try native share (mobile), fall back to clipboard (desktop)
+    if (navigator.share) {
+      try {
+        await navigator.share({ text: shareText });
+        setShared(true);
+      } catch {
+        // User cancelled share — that's fine
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(shareText);
+        setShared(true);
+      } catch {
+        // Clipboard failed — silent
+      }
+    }
   }
 
   function handleForget() {
@@ -196,31 +221,70 @@ export default function MirrorReveal({ history, scenarioId }: MirrorRevealProps)
             animation: "mirrorActionsAppear 1.5s ease-in-out forwards",
           }}
         >
-          <button
-            onClick={handleAddToWall}
+          <div
             style={{
-              background: "transparent",
-              border: "1px solid #2a2a3a",
-              borderRadius: "6px",
-              color: "#555568",
-              fontSize: "13px",
-              fontFamily: "'Georgia', serif",
-              padding: "10px 24px",
-              cursor: "pointer",
-              letterSpacing: "0.05em",
-              transition: "all 0.3s",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = "#3a3a50";
-              e.currentTarget.style.color = "#7070aa";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = "#2a2a3a";
-              e.currentTarget.style.color = "#555568";
+              display: "flex",
+              gap: "16px",
+              alignItems: "center",
             }}
           >
-            leave yours on the wall
-          </button>
+            <button
+              onClick={handleAddToWall}
+              style={{
+                background: "transparent",
+                border: "1px solid #2a2a3a",
+                borderRadius: "6px",
+                color: "#555568",
+                fontSize: "13px",
+                fontFamily: "'Georgia', serif",
+                padding: "10px 24px",
+                cursor: "pointer",
+                letterSpacing: "0.05em",
+                transition: "all 0.3s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = "#3a3a50";
+                e.currentTarget.style.color = "#7070aa";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "#2a2a3a";
+                e.currentTarget.style.color = "#555568";
+              }}
+            >
+              leave yours on the wall
+            </button>
+
+            <button
+              onClick={handleShare}
+              style={{
+                background: "transparent",
+                border: "1px solid #2a2a3a",
+                borderRadius: "6px",
+                color: shared ? "#3a3a50" : "#555568",
+                fontSize: "13px",
+                fontFamily: "'Georgia', serif",
+                padding: "10px 24px",
+                cursor: shared ? "default" : "pointer",
+                letterSpacing: "0.05em",
+                transition: "all 0.3s",
+                fontStyle: shared ? "italic" : "normal",
+              }}
+              onMouseEnter={(e) => {
+                if (!shared) {
+                  e.currentTarget.style.borderColor = "#3a3a50";
+                  e.currentTarget.style.color = "#7070aa";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!shared) {
+                  e.currentTarget.style.borderColor = "#2a2a3a";
+                  e.currentTarget.style.color = "#555568";
+                }
+              }}
+            >
+              {shared ? "copied" : "share yours"}
+            </button>
+          </div>
 
           <button
             onClick={handleForget}
